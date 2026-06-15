@@ -17,6 +17,8 @@ import { AssetGlyph } from "./components/AssetGlyph";
 import { PortfolioChart } from "./components/PortfolioChart";
 import { SendModal } from "./components/SendModal";
 import { ReceiveModal } from "./components/ReceiveModal";
+import { BuyModal } from "./components/BuyModal";
+import { SwapModal } from "./components/SwapModal";
 import { useLedger } from "./lib/store";
 import { ASSET_META, balancesFrom } from "./lib/seed";
 import { fetchPrices, PriceData } from "./lib/price";
@@ -47,6 +49,8 @@ export default function App() {
   const [loadingPrice, setLoadingPrice] = useState(true);
   const [sendOpen, setSendOpen] = useState(false);
   const [recvOpen, setRecvOpen] = useState(false);
+  const [buyOpen, setBuyOpen] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -119,6 +123,14 @@ export default function App() {
   const handleDeposit = (tx: Tx) => {
     addTx(tx);
     fireToast(`Received ${coin(tx.amount)} ${tx.asset}`);
+  };
+  const handleBuy = (tx: Tx) => {
+    addTx(tx);
+    fireToast(`Bought ${coin(tx.amount)} ${tx.asset}`);
+  };
+  const handleSwap = (tx: Tx) => {
+    addTx(tx);
+    fireToast(`Swapped ${coin(tx.amount)} ${tx.asset} → ${coin(tx.toAmount ?? 0)} ${tx.toAsset}`);
   };
 
   return (
@@ -207,10 +219,10 @@ export default function App() {
             <ActionBtn onClick={() => setRecvOpen(true)} icon={<ArrowDownLeft size={18} />}>
               Deposit
             </ActionBtn>
-            <ActionBtn onClick={() => fireToast("Buy flow is simulated in this demo")} icon={<Plus size={18} />}>
+            <ActionBtn onClick={() => setBuyOpen(true)} icon={<Plus size={18} />}>
               Buy
             </ActionBtn>
-            <ActionBtn onClick={() => fireToast("Swap flow is simulated in this demo")} icon={<Repeat size={18} />}>
+            <ActionBtn onClick={() => setSwapOpen(true)} icon={<Repeat size={18} />}>
               Swap
             </ActionBtn>
           </div>
@@ -291,6 +303,7 @@ export default function App() {
           )}
           {filtered.map((t) => {
             const out = t.type === "send";
+            const isSwap = t.type === "swap";
             return (
               <div
                 key={t.id}
@@ -298,7 +311,9 @@ export default function App() {
               >
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                    out
+                    isSwap
+                      ? "bg-accent/10 text-accent-glow"
+                      : out
                       ? "bg-money-down/10 text-money-down"
                       : "bg-money-up/10 text-money-up"
                   }`}
@@ -309,13 +324,19 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-white">{TX_LABEL[t.type]}</p>
                     <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold text-gray-400">
-                      {t.asset}
+                      {isSwap ? `${t.asset}→${t.toAsset}` : t.asset}
                     </span>
                   </div>
                   <p className="truncate text-xs text-gray-500">
-                    {out ? "To " : "From "}
-                    <span className="font-mono">{shortAddr(t.address)}</span>
-                    {t.note ? ` · ${t.note}` : ""}
+                    {isSwap ? (
+                      <>via <span className="font-mono">{t.address}</span></>
+                    ) : (
+                      <>
+                        {out ? "To " : "From "}
+                        <span className="font-mono">{shortAddr(t.address)}</span>
+                      </>
+                    )}
+                    {!isSwap && t.note ? ` · ${t.note}` : ""}
                   </p>
                 </div>
                 <div className="hidden text-right sm:block">
@@ -325,15 +346,28 @@ export default function App() {
                   </p>
                 </div>
                 <div className="w-28 shrink-0 text-right sm:w-32">
-                  <p
-                    className={`tabular font-semibold ${
-                      out ? "text-white" : "text-money-up"
-                    }`}
-                  >
-                    {out ? "-" : "+"}
-                    {coin(t.amount)} {t.asset}
-                  </p>
-                  <p className="tabular text-xs text-gray-500">{usd(t.usdAtTime)}</p>
+                  {isSwap ? (
+                    <>
+                      <p className="tabular font-semibold text-money-up">
+                        +{coin(t.toAmount ?? 0, t.toAsset === "USDT" ? 2 : 6)} {t.toAsset}
+                      </p>
+                      <p className="tabular text-xs text-money-down">
+                        -{coin(t.amount)} {t.asset}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p
+                        className={`tabular font-semibold ${
+                          out ? "text-white" : "text-money-up"
+                        }`}
+                      >
+                        {out ? "-" : "+"}
+                        {coin(t.amount)} {t.asset}
+                      </p>
+                      <p className="tabular text-xs text-gray-500">{usd(t.usdAtTime)}</p>
+                    </>
+                  )}
                 </div>
                 <ChevronRight size={16} className="hidden shrink-0 text-gray-600 sm:block" />
               </div>
@@ -368,6 +402,19 @@ export default function App() {
         onClose={() => setRecvOpen(false)}
         prices={prices}
         onDeposit={handleDeposit}
+      />
+      <BuyModal
+        open={buyOpen}
+        onClose={() => setBuyOpen(false)}
+        prices={prices}
+        onBuy={handleBuy}
+      />
+      <SwapModal
+        open={swapOpen}
+        onClose={() => setSwapOpen(false)}
+        balances={balances}
+        prices={prices}
+        onSwap={handleSwap}
       />
 
       {/* Toast */}

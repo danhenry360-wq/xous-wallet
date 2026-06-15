@@ -185,7 +185,8 @@ export const SEED_TXS: Tx[] = [
 ];
 
 export function signedAmount(tx: Tx): number {
-  return tx.type === "send" ? -tx.amount : tx.amount;
+  // amount on the primary `asset`: sends and the "from" side of swaps debit it.
+  return tx.type === "send" || tx.type === "swap" ? -tx.amount : tx.amount;
 }
 
 export function balancesFrom(txs: Tx[]): Record<AssetSymbol, number> {
@@ -195,6 +196,10 @@ export function balancesFrom(txs: Tx[]): Record<AssetSymbol, number> {
     // `amount` is the full debit/credit to the wallet; any `fee` is included
     // within a send's amount and shown only as an informational detail.
     bal[tx.asset] += signedAmount(tx);
+    // swap credits the "to" asset
+    if (tx.type === "swap" && tx.toAsset && tx.toAmount) {
+      bal[tx.toAsset] += tx.toAmount;
+    }
   }
   // keep float noise out of the headline numbers
   (Object.keys(bal) as AssetSymbol[]).forEach((k) => {

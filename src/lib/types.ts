@@ -13,6 +13,9 @@ export interface Tx {
   timestamp: number; // epoch ms
   note?: string;
   fee?: number; // asset units
+  // swap-only: the credited side. `asset`/`amount` hold the debited (from) side.
+  toAsset?: AssetSymbol;
+  toAmount?: number;
 }
 
 export interface Asset {

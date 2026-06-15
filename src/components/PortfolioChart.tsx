@@ -40,6 +40,9 @@ export function PortfolioChart({
         const tx = chrono[ti];
         bal[tx.asset] += signedAmount(tx);
         if (tx.amount > 0) lastPrice[tx.asset] = tx.usdAtTime / tx.amount;
+        if (tx.type === "swap" && tx.toAsset && tx.toAmount) {
+          bal[tx.toAsset] += tx.toAmount;
+        }
         ti++;
       }
       const value =
