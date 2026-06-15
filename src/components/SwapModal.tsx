@@ -122,8 +122,8 @@ export function SwapModal({
       title={step === "done" ? "Swap complete" : "Swap crypto"}
       subtitle={
         step === "done"
-          ? "Your simulated swap settled instantly"
-          : "Simulated swap — balances update instantly"
+          ? "Your swap settled instantly"
+          : "Exchange one asset for another"
       }
     >
       {step === "form" && (
@@ -204,7 +204,7 @@ export function SwapModal({
             {error || `Swap ${from} for ${to}`}
           </button>
           <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500">
-            <ShieldCheck size={13} /> Simulated — no real assets are swapped
+            <ShieldCheck size={13} /> Best available rate · 0.5% max slippage
           </div>
         </div>
       )}

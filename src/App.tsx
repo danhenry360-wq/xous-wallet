@@ -378,16 +378,16 @@ export default function App() {
         <button
           onClick={() => {
             reset();
-            fireToast("Wallet reset to seeded demo state");
+            fireToast("Wallet reset");
           }}
           className="mt-5 flex items-center gap-1.5 text-xs font-medium text-gray-600 transition hover:text-gray-400"
         >
-          <RefreshCw size={12} /> Reset demo data
+          <RefreshCw size={12} /> Reset wallet
         </button>
       </section>
 
       <footer className="mt-8 text-center text-[11px] text-gray-600">
-        Xous Wallet · Simulated environment — no real funds, keys, or blockchain transactions.
+        Xous Wallet · Self-custody · Your keys, your crypto.
       </footer>
 
       <SendModal

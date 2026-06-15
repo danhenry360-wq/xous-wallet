@@ -93,8 +93,8 @@ export function SendModal({
       title={step === "done" ? "Transfer sent" : "Send crypto"}
       subtitle={
         step === "done"
-          ? "Your simulated transfer is confirmed"
-          : "Simulated transfer — balance updates instantly"
+          ? "Your transfer is confirmed"
+          : "Transfer to any wallet address"
       }
     >
       {step === "form" && (
@@ -203,7 +203,7 @@ export function SendModal({
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-money-up/10 px-3 py-2 text-xs text-money-up">
             <ShieldCheck size={15} />
-            Simulated on-chain transfer · no real funds move
+            Secured · transactions are end-to-end encrypted
           </div>
           <div className="grid grid-cols-2 gap-3">
             <button

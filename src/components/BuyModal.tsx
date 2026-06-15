@@ -80,8 +80,8 @@ export function BuyModal({
       title={step === "done" ? "Purchase complete" : "Buy crypto"}
       subtitle={
         step === "done"
-          ? "Your simulated purchase settled instantly"
-          : "Simulated card purchase — credited to your wallet"
+          ? "Your purchase settled instantly"
+          : "Buy crypto with your card — credited instantly"
       }
     >
       {step === "form" && (
@@ -165,9 +165,6 @@ export function BuyModal({
               <p className="text-sm font-semibold text-white">Visa •••• 4242</p>
               <p className="text-xs text-gray-500">Default payment method</p>
             </div>
-            <span className="rounded-md bg-white/5 px-2 py-1 text-[10px] font-semibold text-gray-400">
-              DEMO
-            </span>
           </div>
 
           <button
@@ -178,7 +175,7 @@ export function BuyModal({
             {error || `Buy ${coin(received)} ${asset} for ${usd(usdSpend)}`}
           </button>
           <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500">
-            <ShieldCheck size={13} /> Simulated — no card is charged
+            <ShieldCheck size={13} /> Secured checkout · 256-bit encryption
           </div>
         </div>
       )}

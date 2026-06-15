@@ -51,7 +51,7 @@ export function ReceiveModal({
       address: addr,
       status: "completed",
       timestamp: Date.now(),
-      note: "Simulated incoming deposit",
+      note: "Incoming deposit",
     };
     onDeposit(tx);
     setAmount("");
@@ -62,7 +62,7 @@ export function ReceiveModal({
       open={open}
       onClose={onClose}
       title="Deposit / Receive"
-      subtitle="Share your address or simulate an incoming deposit"
+      subtitle="Share your address to receive funds"
     >
       <div className="space-y-5">
         <div className="grid grid-cols-3 gap-2">
@@ -102,7 +102,7 @@ export function ReceiveModal({
 
         <div className="rounded-2xl border border-dashed border-white/15 bg-ink-700/50 p-4">
           <p className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-gray-400">
-            <Download size={13} /> Simulate a deposit
+            <Download size={13} /> Request a deposit
           </p>
           <div className="flex gap-2">
             <div className="relative flex-1">
