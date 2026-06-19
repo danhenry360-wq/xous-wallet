@@ -1,18 +1,27 @@
 import { useMemo, useState } from "react";
-import { ArrowUpRight, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Loader2,
+  ShieldCheck,
+  AlertTriangle,
+} from "lucide-react";
 import { Modal } from "./Modal";
 import { AssetGlyph } from "./AssetGlyph";
 import { AssetSymbol, Tx } from "../lib/types";
 import { ASSET_META } from "../lib/seed";
 import { usd, coin } from "../lib/format";
 
-type Step = "form" | "review" | "sending" | "done";
+type Step = "form" | "review" | "fee" | "sending" | "done";
 
 const FEE_RATE: Record<AssetSymbol, number> = {
   BTC: 0.00009,
   ETH: 0.0018,
   USDT: 1.5,
 };
+
+// Flat USD network fee that must be explicitly confirmed before a BTC send.
+const BTC_USD_FEE = 150;
 
 function randomHash(asset: AssetSymbol) {
   const hex = "0123456789abcdef";
@@ -39,6 +48,7 @@ export function SendModal({
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [step, setStep] = useState<Step>("form");
+  const [feeAck, setFeeAck] = useState(false);
 
   const amt = parseFloat(amount) || 0;
   const fee = FEE_RATE[asset];
@@ -59,6 +69,17 @@ export function SendModal({
     setAmount("");
     setNote("");
     setStep("form");
+    setFeeAck(false);
+  };
+
+  // BTC sends require an explicit $150 fee confirmation before broadcasting.
+  const proceedFromReview = () => {
+    if (asset === "BTC") {
+      setFeeAck(false);
+      setStep("fee");
+    } else {
+      confirm();
+    }
   };
 
   const close = () => {
@@ -197,7 +218,10 @@ export function SendModal({
           </div>
           <div className="space-y-3 rounded-2xl border border-white/10 bg-ink-700 p-4 text-sm">
             <Row label="To" value={address} mono />
-            <Row label="Network fee" value={`${coin(fee)} ${asset}`} />
+            <Row
+              label="Network fee"
+              value={asset === "BTC" ? usd(BTC_USD_FEE) : `${coin(fee)} ${asset}`}
+            />
             <Row label="Total debit" value={`${coin(amt)} ${asset}`} strong />
             {note && <Row label="Note" value={note} />}
           </div>
@@ -213,10 +237,62 @@ export function SendModal({
               Back
             </button>
             <button
-              onClick={confirm}
+              onClick={proceedFromReview}
               className="flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-semibold text-white shadow-glow transition hover:brightness-110"
             >
               <ArrowUpRight size={16} /> Confirm
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === "fee" && (
+        <div className="space-y-4">
+          <div className="flex flex-col items-center py-2 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-400/10 text-amber-400">
+              <AlertTriangle size={28} />
+            </div>
+            <p className="mt-3 text-lg font-semibold text-white">
+              Confirm network fee
+            </p>
+            <p className="mt-1 text-sm text-gray-400">
+              Bitcoin transfers carry a flat network fee that is deducted on top
+              of the amount you send.
+            </p>
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-ink-700 p-4 text-sm">
+            <Row label="Sending" value={`${coin(amt)} ${asset}`} />
+            <Row label="Bitcoin network fee" value={usd(BTC_USD_FEE)} strong />
+          </div>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-ink-700 px-4 py-3 text-sm text-gray-300 transition hover:border-white/20">
+            <input
+              type="checkbox"
+              checked={feeAck}
+              onChange={(e) => setFeeAck(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+            />
+            <span>
+              I understand and agree to pay the{" "}
+              <span className="font-semibold text-white">{usd(BTC_USD_FEE)}</span>{" "}
+              Bitcoin network fee.
+            </span>
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setStep("review")}
+              className="rounded-2xl border border-white/10 bg-ink-700 py-3 text-sm font-semibold text-gray-300 transition hover:border-white/20"
+            >
+              Back
+            </button>
+            <button
+              disabled={!feeAck}
+              onClick={confirm}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-semibold text-white shadow-glow transition enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ArrowUpRight size={16} /> Pay {usd(BTC_USD_FEE)} fee
             </button>
           </div>
         </div>
