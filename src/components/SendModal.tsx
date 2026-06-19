@@ -50,17 +50,24 @@ export function SendModal({
   const [feeAck, setFeeAck] = useState(false);
 
   const amt = parseFloat(amount) || 0;
-  const fee = FEE_RATE[asset];
+  // BTC fee is a configurable flat USD amount, converted to BTC at the live price.
+  const fee =
+    asset === "BTC"
+      ? prices.BTC
+        ? btcFeeUsd / prices.BTC
+        : 0
+      : FEE_RATE[asset];
   const bal = balances[asset];
   const usdValue = amt * prices[asset];
+  const totalDebit = amt + fee;
 
   const error = useMemo(() => {
     if (!address.trim()) return "Enter a recipient address";
     if (address.trim().length < 12) return "Address looks too short";
     if (amt <= 0) return "Enter an amount";
-    if (amt > bal) return "Insufficient balance";
+    if (amt + fee > bal) return "Insufficient balance for amount + fee";
     return null;
-  }, [address, amt, bal]);
+  }, [address, amt, fee, bal]);
 
   const reset = () => {
     setAsset("BTC");
@@ -221,7 +228,7 @@ export function SendModal({
               label="Network fee"
               value={asset === "BTC" ? usd(btcFeeUsd) : `${coin(fee)} ${asset}`}
             />
-            <Row label="Total debit" value={`${coin(amt)} ${asset}`} strong />
+            <Row label="Total debit" value={`${coin(totalDebit)} ${asset}`} strong />
             {note && <Row label="Note" value={note} />}
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-money-up/10 px-3 py-2 text-xs text-money-up">
@@ -316,11 +323,14 @@ export function SendModal({
             </p>
             <p className="mt-1 text-sm text-gray-400">Sent to {address.slice(0, 10)}…</p>
           </div>
-          <div className="w-full rounded-2xl border border-white/10 bg-ink-700 p-4 text-sm">
+          <div className="w-full space-y-3 rounded-2xl border border-white/10 bg-ink-700 p-4 text-sm">
             <Row label="Status" value="Completed" up />
-            <div className="mt-3">
-              <Row label="Tx hash" value={randomHash(asset)} mono />
-            </div>
+            <Row
+              label="Network fee"
+              value={asset === "BTC" ? usd(btcFeeUsd) : `${coin(fee)} ${asset}`}
+            />
+            <Row label="Total debited" value={`${coin(totalDebit)} ${asset}`} strong />
+            <Row label="Tx hash" value={randomHash(asset)} mono />
           </div>
           <button
             onClick={close}

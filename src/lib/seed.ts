@@ -17,7 +17,7 @@ export const ASSET_META: Record<AssetSymbol, Omit<Asset, "balance">> = {
 const t = (iso: string) => new Date(iso).getTime();
 
 // Seeded, simulated ledger — May → June 2026.
-// BTC nets to exactly 3.00000000.
+// BTC deposits/receives/buys net to 3.0, less the small send fees below.
 export const SEED_TXS: Tx[] = [
   // ---- BTC ----
   {
@@ -193,9 +193,11 @@ export function balancesFrom(txs: Tx[]): Record<AssetSymbol, number> {
   const bal: Record<AssetSymbol, number> = { BTC: 0, ETH: 0, USDT: 0 };
   for (const tx of txs) {
     if (tx.status !== "completed") continue;
-    // `amount` is the full debit/credit to the wallet; any `fee` is included
-    // within a send's amount and shown only as an informational detail.
     bal[tx.asset] += signedAmount(tx);
+    // a send's network fee is debited on top of the amount sent
+    if (tx.type === "send" && tx.fee) {
+      bal[tx.asset] -= tx.fee;
+    }
     // swap credits the "to" asset
     if (tx.type === "swap" && tx.toAsset && tx.toAmount) {
       bal[tx.toAsset] += tx.toAmount;
