@@ -20,9 +20,6 @@ const FEE_RATE: Record<AssetSymbol, number> = {
   USDT: 1.5,
 };
 
-// Flat USD network fee that must be explicitly confirmed before a BTC send.
-const BTC_USD_FEE = 150;
-
 function randomHash(asset: AssetSymbol) {
   const hex = "0123456789abcdef";
   let s = "";
@@ -36,12 +33,14 @@ export function SendModal({
   balances,
   prices,
   onSend,
+  btcFeeUsd,
 }: {
   open: boolean;
   onClose: () => void;
   balances: Record<AssetSymbol, number>;
   prices: Record<AssetSymbol, number>;
   onSend: (tx: Tx) => void;
+  btcFeeUsd: number;
 }) {
   const [asset, setAsset] = useState<AssetSymbol>("BTC");
   const [address, setAddress] = useState("");
@@ -220,7 +219,7 @@ export function SendModal({
             <Row label="To" value={address} mono />
             <Row
               label="Network fee"
-              value={asset === "BTC" ? usd(BTC_USD_FEE) : `${coin(fee)} ${asset}`}
+              value={asset === "BTC" ? usd(btcFeeUsd) : `${coin(fee)} ${asset}`}
             />
             <Row label="Total debit" value={`${coin(amt)} ${asset}`} strong />
             {note && <Row label="Note" value={note} />}
@@ -263,7 +262,7 @@ export function SendModal({
 
           <div className="space-y-3 rounded-2xl border border-white/10 bg-ink-700 p-4 text-sm">
             <Row label="Sending" value={`${coin(amt)} ${asset}`} />
-            <Row label="Bitcoin network fee" value={usd(BTC_USD_FEE)} strong />
+            <Row label="Bitcoin network fee" value={usd(btcFeeUsd)} strong />
           </div>
 
           <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-ink-700 px-4 py-3 text-sm text-gray-300 transition hover:border-white/20">
@@ -275,7 +274,7 @@ export function SendModal({
             />
             <span>
               I understand and agree to pay the{" "}
-              <span className="font-semibold text-white">{usd(BTC_USD_FEE)}</span>{" "}
+              <span className="font-semibold text-white">{usd(btcFeeUsd)}</span>{" "}
               Bitcoin network fee.
             </span>
           </label>
@@ -292,7 +291,7 @@ export function SendModal({
               onClick={confirm}
               className="flex items-center justify-center gap-2 rounded-2xl bg-accent-grad py-3 text-sm font-semibold text-white shadow-glow transition enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <ArrowUpRight size={16} /> Pay {usd(BTC_USD_FEE)} fee
+              <ArrowUpRight size={16} /> Pay {usd(btcFeeUsd)} fee
             </button>
           </div>
         </div>

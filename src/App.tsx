@@ -19,7 +19,9 @@ import { SendModal } from "./components/SendModal";
 import { ReceiveModal } from "./components/ReceiveModal";
 import { BuyModal } from "./components/BuyModal";
 import { SwapModal } from "./components/SwapModal";
+import { SettingsModal } from "./components/SettingsModal";
 import { useLedger } from "./lib/store";
+import { useSettings } from "./lib/settings";
 import { ASSET_META, balancesFrom } from "./lib/seed";
 import { fetchPrices, PriceData } from "./lib/price";
 import { AssetSymbol, Tx, TxType } from "./lib/types";
@@ -45,12 +47,14 @@ type Filter = "all" | "send" | "receive";
 
 export default function App() {
   const { txs, addTx, reset } = useLedger();
+  const { settings, update: updateSettings } = useSettings();
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(true);
   const [sendOpen, setSendOpen] = useState(false);
   const [recvOpen, setRecvOpen] = useState(false);
   const [buyOpen, setBuyOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -165,7 +169,7 @@ export default function App() {
           <IconButton>
             <Bell size={17} />
           </IconButton>
-          <IconButton>
+          <IconButton onClick={() => setSettingsOpen(true)}>
             <Settings size={17} />
           </IconButton>
         </div>
@@ -396,6 +400,7 @@ export default function App() {
         balances={balances}
         prices={prices}
         onSend={handleSend}
+        btcFeeUsd={settings.btcFeeUsd}
       />
       <ReceiveModal
         open={recvOpen}
@@ -415,6 +420,15 @@ export default function App() {
         balances={balances}
         prices={prices}
         onSwap={handleSwap}
+      />
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        btcFeeUsd={settings.btcFeeUsd}
+        onSave={(btcFeeUsd) => {
+          updateSettings({ btcFeeUsd });
+          fireToast(`Bitcoin fee set to ${usd(btcFeeUsd)}`);
+        }}
       />
 
       {/* Toast */}
